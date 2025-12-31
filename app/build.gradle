@@ -50,6 +50,9 @@ android {
 }
 
 dependencies {
+    // Chat SDK Module
+    implementation project(':chat-sdk')
+    
     // Core Android
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
