@@ -1,18 +1,28 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.serialization'
     id 'com.google.dagger.hilt.android'
     id 'com.google.devtools.ksp'
 }
 
 android {
-    namespace 'com.hezi.chatsdk'
+    namespace 'com.hezi.chatsdk.openai'
     compileSdk 35
 
     defaultConfig {
         minSdk 24
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+        
+        // Load API key from local.properties
+        def localProperties = new Properties()
+        def localPropertiesFile = rootProject.file('local.properties')
+        if (localPropertiesFile.exists()) {
+            localProperties.load(new FileInputStream(localPropertiesFile))
+        }
+        
+        buildConfigField "String", "OPENAI_API_KEY", "\"${localProperties.getProperty('OPENAI_API_KEY', '')}\""
     }
 
     buildTypes {
@@ -30,19 +40,23 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+    
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 dependencies {
-    // All provider SDKs
+    // Core SDK (interfaces/models)
     api project(':chat-sdk-core')
-    api project(':chat-sdk-openai')
-    api project(':chat-sdk-mock')
     
-    // Networking (for OpenAI provider setup)
+    // Networking
     implementation libs.retrofit
     implementation libs.retrofit.converter.kotlinx.serialization
     implementation libs.okhttp
     implementation libs.okhttp.logging.interceptor
+    
+    // Serialization
     implementation libs.kotlinx.serialization.json
     
     // Coroutines
@@ -56,3 +70,4 @@ dependencies {
     // Testing
     testImplementation libs.junit
 }
+

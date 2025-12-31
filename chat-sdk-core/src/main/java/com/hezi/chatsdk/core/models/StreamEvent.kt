@@ -1,4 +1,4 @@
-package com.hezi.chatsdk.models
+package com.hezi.chatsdk.core.models
 
 sealed class StreamEvent {
     data class Delta(val text: String) : StreamEvent()

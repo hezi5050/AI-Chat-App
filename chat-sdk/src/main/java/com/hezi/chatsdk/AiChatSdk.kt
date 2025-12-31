@@ -1,65 +1,71 @@
 package com.hezi.chatsdk
 
-import com.hezi.chatsdk.config.Provider
-import com.hezi.chatsdk.config.SdkConfiguration
-import com.hezi.chatsdk.models.ChatRequest
-import com.hezi.chatsdk.models.ChatResponse
-import com.hezi.chatsdk.models.StreamEvent
-import com.hezi.chatsdk.routing.ProviderRouter
+import com.hezi.chatsdk.core.config.Provider
+import com.hezi.chatsdk.core.config.SdkConfiguration
+import com.hezi.chatsdk.core.models.ChatRequest
+import com.hezi.chatsdk.core.models.ChatResponse
+import com.hezi.chatsdk.core.models.StreamEvent
+import com.hezi.chatsdk.di.SdkConfig
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Main SDK interface for AI chat functionality.
- * Provides methods to send chat requests and manage configuration at runtime.
+ * Main SDK interface that aggregates all provider implementations.
+ * This is the primary entry point for applications using the Chat SDK.
  */
 @Singleton
 class AiChatSdk @Inject constructor(
-    private val router: ProviderRouter
+    private val router: ProviderRouter,
+    private val sdkConfig: SdkConfig
 ) {
     
     /**
-     * Returns the current SDK configuration.
+     * Enable or disable debug logging.
+     * 
+     * @param isDebug Whether to enable debug logging
+     */
+    fun setDebugMode(isDebug: Boolean) {
+        sdkConfig.setDebugMode(isDebug)
+    }
+    
+    /**
+     * Get the current SDK configuration
      */
     fun getConfiguration(): SdkConfiguration = router.getConfiguration()
     
     /**
-     * Updates the SDK configuration at runtime.
-     * Changes take effect immediately for subsequent requests.
+     * Update the SDK configuration
      */
     fun updateConfiguration(config: SdkConfiguration) {
         router.updateConfiguration(config)
     }
     
     /**
-     * Updates specific configuration parameters without replacing the entire config.
+     * Update the SDK configuration using a builder lambda
      */
     fun updateConfiguration(block: SdkConfiguration.() -> SdkConfiguration) {
-        val newConfig = block(getConfiguration())
-        router.updateConfiguration(newConfig)
+        router.updateConfiguration(block)
     }
     
     /**
-     * Sends a standard (non-streaming) chat request.
+     * Get list of all available providers
+     */
+    fun getAvailableProviders(): List<Provider> {
+        return router.getAvailableProviders()
+    }
+    
+    /**
+     * Perform a standard (non-streaming) chat completion
      */
     suspend fun chat(request: ChatRequest): ChatResponse {
         return router.chat(request)
     }
     
     /**
-     * Sends a streaming chat request.
-     * Returns a Flow that emits tokens as they are received.
+     * Perform a streaming chat completion
      */
     fun chatStream(request: ChatRequest): Flow<StreamEvent> {
         return router.chatStream(request)
     }
-    
-    /**
-     * Returns the list of available providers.
-     */
-    fun getAvailableProviders(): List<Provider> {
-        return router.getAvailableProviders()
-    }
 }
-

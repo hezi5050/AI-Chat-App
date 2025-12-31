@@ -21,4 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "Ai Chat App"
 include ':app'
+include ':chat-sdk-core'
+include ':chat-sdk-openai'
+include ':chat-sdk-mock'
 include ':chat-sdk'

@@ -1,4 +1,4 @@
-package com.hezi.chatsdk.config
+package com.hezi.chatsdk.core.config
 
 data class SdkConfiguration(
     val provider: Provider = Provider.OPENAI,

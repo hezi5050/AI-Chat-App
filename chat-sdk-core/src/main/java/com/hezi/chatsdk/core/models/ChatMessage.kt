@@ -1,4 +1,4 @@
-package com.hezi.chatsdk.models
+package com.hezi.chatsdk.core.models
 
 data class ChatMessage(
     val role: MessageRole,

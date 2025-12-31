@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace 'com.hezi.chatsdk'
+    namespace 'com.hezi.chatsdk.mock'
     compileSdk 35
 
     defaultConfig {
@@ -33,17 +33,8 @@ android {
 }
 
 dependencies {
-    // All provider SDKs
+    // Core SDK (interfaces/models)
     api project(':chat-sdk-core')
-    api project(':chat-sdk-openai')
-    api project(':chat-sdk-mock')
-    
-    // Networking (for OpenAI provider setup)
-    implementation libs.retrofit
-    implementation libs.retrofit.converter.kotlinx.serialization
-    implementation libs.okhttp
-    implementation libs.okhttp.logging.interceptor
-    implementation libs.kotlinx.serialization.json
     
     // Coroutines
     implementation libs.kotlinx.coroutines.core
@@ -56,3 +47,4 @@ dependencies {
     // Testing
     testImplementation libs.junit
 }
+

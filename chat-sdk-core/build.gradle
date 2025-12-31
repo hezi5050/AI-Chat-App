@@ -1,12 +1,11 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
-    id 'com.google.dagger.hilt.android'
-    id 'com.google.devtools.ksp'
+    id 'org.jetbrains.kotlin.plugin.serialization'
 }
 
 android {
-    namespace 'com.hezi.chatsdk'
+    namespace 'com.hezi.chatsdk.core'
     compileSdk 35
 
     defaultConfig {
@@ -33,25 +32,11 @@ android {
 }
 
 dependencies {
-    // All provider SDKs
-    api project(':chat-sdk-core')
-    api project(':chat-sdk-openai')
-    api project(':chat-sdk-mock')
+    // Coroutines (for Flow)
+    api libs.kotlinx.coroutines.core
     
-    // Networking (for OpenAI provider setup)
-    implementation libs.retrofit
-    implementation libs.retrofit.converter.kotlinx.serialization
-    implementation libs.okhttp
-    implementation libs.okhttp.logging.interceptor
-    implementation libs.kotlinx.serialization.json
-    
-    // Coroutines
-    implementation libs.kotlinx.coroutines.core
-    implementation libs.kotlinx.coroutines.android
-    
-    // Hilt
-    implementation libs.hilt.android
-    ksp libs.hilt.compiler
+    // Hilt annotations (for DI qualifiers/mapkeys)
+    api libs.hilt.android
     
     // Testing
     testImplementation libs.junit

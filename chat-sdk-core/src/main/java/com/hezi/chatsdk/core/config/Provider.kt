@@ -1,4 +1,4 @@
-package com.hezi.chatsdk.config
+package com.hezi.chatsdk.core.config
 
 enum class Provider {
     OPENAI,

@@ -1,6 +1,6 @@
-package com.hezi.chatsdk.models
+package com.hezi.chatsdk.core.models
 
-import com.hezi.chatsdk.config.Provider
+import com.hezi.chatsdk.core.config.Provider
 
 data class ChatResponse(
     val text: String,
