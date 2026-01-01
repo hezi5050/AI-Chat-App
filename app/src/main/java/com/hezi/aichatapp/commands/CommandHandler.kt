@@ -1,6 +1,9 @@
 package com.hezi.aichatapp.commands
 
+import android.content.Context
+import com.hezi.aichatapp.R
 import com.hezi.chatsdk.AiChatSdk
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -9,7 +12,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class CommandHandler @Inject constructor(
-    private val sdk: AiChatSdk
+    private val sdk: AiChatSdk,
+    @ApplicationContext private val context: Context
 ) {
 
     /**
@@ -23,43 +27,58 @@ class CommandHandler @Inject constructor(
             }
 
             is Command.ChangeModel -> {
+                // Model already validated in parser
                 sdk.updateConfiguration { copy(model = command.model) }
-                CommandResult.Message("Model changed to: ${command.model}")
+                CommandResult.Message(
+                    context.getString(R.string.command_model_changed, command.model)
+                )
             }
 
-            is Command.ChangeProvider -> {
-                val provider = sdk.getAvailableProviders().find { it.name == command.provider }
-                if (provider != null) {
-                    sdk.updateConfiguration { copy(providerName = command.provider) }
-                    CommandResult.Message("Provider changed to: ${provider.name}\nAvailable models: ${provider.models.joinToString(", ")}")
-                } else {
-                    CommandResult.Message("Provider '${command.provider}' not found")
+            is Command.ChangeProviderAndModel -> {
+                // Provider and model already validated in parser
+                sdk.updateConfiguration { 
+                    copy(
+                        providerName = command.providerName,
+                        model = command.model
+                    )
                 }
+                CommandResult.Message(
+                    context.getString(
+                        R.string.command_provider_and_model_changed,
+                        command.providerName,
+                        command.model
+                    )
+                )
             }
 
             is Command.ChangeTemperature -> {
                 sdk.updateConfiguration { copy(temperature = command.temperature) }
-                CommandResult.Message("Temperature set to: ${command.temperature}")
+                CommandResult.Message(
+                    context.getString(R.string.command_temperature_set, command.temperature)
+                )
             }
 
             is Command.ChangeMaxTokens -> {
                 sdk.updateConfiguration { copy(maxTokens = command.maxTokens) }
-                CommandResult.Message("Max tokens set to: ${command.maxTokens}")
+                CommandResult.Message(
+                    context.getString(R.string.command_tokens_set, command.maxTokens)
+                )
             }
 
             is Command.ShowConfig -> {
                 val config = sdk.getConfiguration()
                 val provider = sdk.getAvailableProviders().find { it.name == config.providerName }
                 val configText = buildString {
-                    appendLine("Current Configuration:")
-                    appendLine("• Provider: ${provider?.name ?: config.providerName}")
-                    appendLine("• Model: ${config.model}")
-                    appendLine("• Temperature: ${config.temperature}")
-                    appendLine("• Max Tokens: ${config.maxTokens}")
+                    appendLine(context.getString(R.string.config_title))
+                    appendLine(context.getString(R.string.config_provider, provider?.name ?: config.providerName))
+                    appendLine(context.getString(R.string.config_model, config.model))
+                    appendLine(context.getString(R.string.config_temperature, config.temperature))
+                    appendLine(context.getString(R.string.config_max_tokens, config.maxTokens))
                     if (provider != null) {
-                        appendLine("\nAvailable models for ${provider.name}:")
+                        appendLine()
+                        appendLine(context.getString(R.string.config_available_models, provider.name))
                         provider.models.forEach { model ->
-                            appendLine("  - $model")
+                            appendLine(context.getString(R.string.config_model_item, model))
                         }
                     }
                 }
@@ -69,18 +88,18 @@ class CommandHandler @Inject constructor(
             is Command.Help -> {
                 val availableProviders = sdk.getAvailableProviders()
                 val helpText = buildString {
-                    appendLine("Available Commands:")
-                    appendLine("/clear - Clear conversation history")
-                    appendLine("/model <name> - Change AI model")
-                    appendLine("/provider <id> - Switch provider")
-                    appendLine("  Available providers:")
+                    appendLine(context.getString(R.string.help_title))
+                    appendLine(context.getString(R.string.help_clear))
+                    appendLine(context.getString(R.string.help_model))
+                    appendLine(context.getString(R.string.help_model_examples))
                     availableProviders.forEach { provider ->
-                        appendLine("    • ${provider.name} - ${provider.name}")
+                        val exampleModel = provider.models.firstOrNull() ?: "model-name"
+                        appendLine(context.getString(R.string.help_model_example_item, provider.name, exampleModel))
                     }
-                    appendLine("/temp <value> - Set temperature (0.0-2.0)")
-                    appendLine("/tokens <value> - Set max tokens")
-                    appendLine("/config - Show current configuration")
-                    appendLine("/help - Show this help message")
+                    appendLine(context.getString(R.string.help_temp))
+                    appendLine(context.getString(R.string.help_tokens))
+                    appendLine(context.getString(R.string.help_config))
+                    appendLine(context.getString(R.string.help_help))
                 }
                 CommandResult.Message(helpText.trim())
             }

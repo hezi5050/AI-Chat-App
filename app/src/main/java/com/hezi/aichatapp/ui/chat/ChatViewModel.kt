@@ -26,6 +26,7 @@ import javax.inject.Inject
 class ChatViewModel @Inject constructor(
     private val sdk: AiChatSdk,
     private val commandHandler: CommandHandler,
+    private val commandParser: CommandParser,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -80,7 +81,7 @@ class ChatViewModel @Inject constructor(
         if (text.isBlank() || _uiState.value.isLoading) return
 
         // Check if it's a command
-        val command = CommandParser.parse(text)
+        val command = commandParser.parse(text)
         if (command != null) {
             handleCommand(text, command)
             return

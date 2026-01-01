@@ -50,17 +50,16 @@
     <string name="error_send_message">Failed to send message: %s</string>
     
     <!-- Commands -->
-    <string name="command_usage_model">Usage: /model &lt;model_name&gt;</string>
-    <string name="command_usage_provider">Usage: /provider &lt;provider_name&gt;</string>
+    <string name="command_usage_model">Usage: /model &lt;model_name&gt; or /model &lt;provider:model&gt;</string>
     <string name="command_usage_temperature">Usage: /temp &lt;value&gt; (0.0 - 2.0)</string>
     <string name="command_usage_tokens">Usage: /tokens &lt;value&gt;</string>
     <string name="command_unknown">Unknown command: /%s. Type /help for available commands.</string>
     <string name="command_model_changed">Model changed to: %s</string>
-    <string name="command_provider_changed">Provider changed to: %1$s\nAvailable models: %2$s</string>
-    <string name="command_provider_not_found">Provider \'%s\' not found</string>
+    <string name="command_provider_and_model_changed">Provider changed to: %1$s\nModel changed to: %2$s</string>
     <string name="command_temperature_set">Temperature set to: %s</string>
     <string name="command_tokens_set">Max tokens set to: %d</string>
-    <string name="command_invalid_provider">Invalid provider: %1$s. Available: %2$s</string>
+    <string name="command_invalid_provider">Invalid provider: %1$s. Available providers: %2$s</string>
+    <string name="command_invalid_model_for_provider">Invalid model \'%1$s\' for provider %2$s. Available models: %3$s</string>
     <string name="command_invalid_temperature_range">Temperature must be between 0.0 and 2.0</string>
     <string name="command_invalid_temperature_value">Invalid temperature value: %s</string>
     <string name="command_invalid_tokens_positive">Max tokens must be positive</string>
@@ -78,10 +77,9 @@
     <!-- Help Command -->
     <string name="help_title">Available Commands:</string>
     <string name="help_clear">/clear - Clear conversation history</string>
-    <string name="help_model">/model &lt;name&gt; - Change AI model</string>
-    <string name="help_provider">/provider &lt;name&gt; - Switch provider</string>
-    <string name="help_available_providers">  Available providers:</string>
-    <string name="help_provider_item">    • %1$s - %2$s</string>
+    <string name="help_model">/model &lt;name&gt; or /model &lt;provider:model&gt; - Change model or switch provider and model</string>
+    <string name="help_model_examples">  Examples:</string>
+    <string name="help_model_example_item">    /model %1$s:%2$s</string>
     <string name="help_temp">/temp &lt;value&gt; - Set temperature (0.0-2.0)</string>
     <string name="help_tokens">/tokens &lt;value&gt; - Set max tokens</string>
     <string name="help_config">/config - Show current configuration</string>

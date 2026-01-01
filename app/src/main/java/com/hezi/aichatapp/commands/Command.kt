@@ -10,14 +10,14 @@ sealed class Command {
     data object Clear : Command()
 
     /**
-     * Change the AI model
+     * Change the AI model (for current provider)
      */
     data class ChangeModel(val model: String) : Command()
 
     /**
-     * Switch the provider (OpenAI, Mock, etc.) by provider ID
+     * Change both provider and model together
      */
-    data class ChangeProvider(val provider: String) : Command()
+    data class ChangeProviderAndModel(val providerName: String, val model: String) : Command()
 
     /**
      * Change the temperature parameter
