@@ -19,10 +19,11 @@ import kotlinx.serialization.json.Json
 class OpenAiProvider(
     private val apiService: OpenAiApiService,
     private val apiKey: String,
-    private val json: Json
+    private val json: Json,
+    private val providerInfo: Provider
 ) : LlmProvider {
     
-    override fun getProvider(): Provider = Provider.OPENAI
+    override fun getProvider(): Provider = providerInfo
     
     override suspend fun chat(request: ChatRequest, config: SdkConfiguration): ChatResponse = withContext(Dispatchers.IO) {
         val startTime = System.currentTimeMillis()
@@ -49,7 +50,7 @@ class OpenAiProvider(
         
         ChatResponse(
             text = body.choices.firstOrNull()?.message?.content ?: "",
-            provider = Provider.OPENAI,
+            provider = providerInfo,
             model = body.model,
             latencyMs = latency,
             tokenUsage = body.usage?.let {
@@ -122,7 +123,7 @@ class OpenAiProvider(
                 StreamEvent.Complete(
                     ChatResponse(
                         text = accumulatedText.toString(),
-                        provider = Provider.OPENAI,
+                        provider = providerInfo,
                         model = config.model,
                         latencyMs = latency,
                         tokenUsage = null

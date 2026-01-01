@@ -12,9 +12,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlin.random.Random
 
-class MockProvider : LlmProvider {
+class MockProvider(
+    private val providerInfo: Provider
+) : LlmProvider {
     
-    override fun getProvider(): Provider = Provider.MOCK
+    override fun getProvider(): Provider = providerInfo
     
     override suspend fun chat(request: ChatRequest, config: SdkConfiguration): ChatResponse {
         // Simulate network delay
@@ -24,7 +26,7 @@ class MockProvider : LlmProvider {
         
         return ChatResponse(
             text = mockResponse,
-            provider = Provider.MOCK,
+            provider = providerInfo,
             model = config.model,
             latencyMs = Random.nextLong(500, 1500),
             tokenUsage = TokenUsage(
@@ -51,7 +53,7 @@ class MockProvider : LlmProvider {
             StreamEvent.Complete(
                 ChatResponse(
                     text = mockResponse,
-                    provider = Provider.MOCK,
+                    provider = providerInfo,
                     model = config.model,
                     latencyMs = latency,
                     tokenUsage = TokenUsage(

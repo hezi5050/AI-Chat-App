@@ -1,3 +1,89 @@
 <resources>
+    <!-- App Name -->
     <string name="app_name">AI Chat App</string>
+
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="menu">Menu</string>
+    <string name="loading">Loading…</string>
+    <string name="save_settings">Save Settings</string>
+
+    <!-- Chat Screen -->
+    <string name="ai_chat_app_title">AI Chat App</string>
+    <string name="ai_chat">AI Chat</string>
+    <string name="provider_model_format">Provider: %1$s | Model: %2$s</string>
+    <string name="start_conversation">Start a conversation…</string>
+    <string name="type_message">Type a message…</string>
+    <string name="send_message">Send message</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings">Settings</string>
+    
+    <!-- Provider Selection -->
+    <string name="ai_provider">AI Provider</string>
+    <plurals name="models_available">
+        <item quantity="one">%d model available</item>
+        <item quantity="other">%d models available</item>
+    </plurals>
+    
+    <!-- Model Selection -->
+    <string name="model">Model</string>
+    <string name="select_model">Select Model</string>
+    
+    <!-- Temperature -->
+    <string name="temperature">Temperature</string>
+    <string name="temperature_min">0.0</string>
+    <string name="temperature_max">2.0</string>
+    <string name="temperature_current">Current: %.1f</string>
+    <string name="temperature_consistent">Very Consistent - Best for factual and structured outputs</string>
+    <string name="temperature_balanced">Balanced - More natural and creative chat responses</string>
+    <string name="temperature_creative">Creative - More surprising and varied responses</string>
+    
+    <!-- Max Tokens -->
+    <string name="max_tokens">Max Tokens</string>
+    <string name="max_tokens_description">Maximum number of tokens to generate in the response. Higher values allow longer responses but may take more time.</string>
+    <string name="max_tokens_error">Please enter a valid positive number</string>
+    
+    <!-- Error Messages -->
+    <string name="error_format">Error: %s</string>
+    <string name="error_unknown">Unknown error</string>
+    <string name="error_send_message">Failed to send message: %s</string>
+    
+    <!-- Commands -->
+    <string name="command_usage_model">Usage: /model &lt;model_name&gt;</string>
+    <string name="command_usage_provider">Usage: /provider &lt;provider_name&gt;</string>
+    <string name="command_usage_temperature">Usage: /temp &lt;value&gt; (0.0 - 2.0)</string>
+    <string name="command_usage_tokens">Usage: /tokens &lt;value&gt;</string>
+    <string name="command_unknown">Unknown command: /%s. Type /help for available commands.</string>
+    <string name="command_model_changed">Model changed to: %s</string>
+    <string name="command_provider_changed">Provider changed to: %1$s\nAvailable models: %2$s</string>
+    <string name="command_provider_not_found">Provider \'%s\' not found</string>
+    <string name="command_temperature_set">Temperature set to: %s</string>
+    <string name="command_tokens_set">Max tokens set to: %d</string>
+    <string name="command_invalid_provider">Invalid provider: %1$s. Available: %2$s</string>
+    <string name="command_invalid_temperature_range">Temperature must be between 0.0 and 2.0</string>
+    <string name="command_invalid_temperature_value">Invalid temperature value: %s</string>
+    <string name="command_invalid_tokens_positive">Max tokens must be positive</string>
+    <string name="command_invalid_tokens_value">Invalid max tokens value: %s</string>
+    
+    <!-- Config Command -->
+    <string name="config_title">Current Configuration:</string>
+    <string name="config_provider">• Provider: %s</string>
+    <string name="config_model">• Model: %s</string>
+    <string name="config_temperature">• Temperature: %s</string>
+    <string name="config_max_tokens">• Max Tokens: %d</string>
+    <string name="config_available_models">Available models for %s:</string>
+    <string name="config_model_item">  - %s</string>
+    
+    <!-- Help Command -->
+    <string name="help_title">Available Commands:</string>
+    <string name="help_clear">/clear - Clear conversation history</string>
+    <string name="help_model">/model &lt;name&gt; - Change AI model</string>
+    <string name="help_provider">/provider &lt;name&gt; - Switch provider</string>
+    <string name="help_available_providers">  Available providers:</string>
+    <string name="help_provider_item">    • %1$s - %2$s</string>
+    <string name="help_temp">/temp &lt;value&gt; - Set temperature (0.0-2.0)</string>
+    <string name="help_tokens">/tokens &lt;value&gt; - Set max tokens</string>
+    <string name="help_config">/config - Show current configuration</string>
+    <string name="help_help">/help - Show this help message</string>
 </resources>

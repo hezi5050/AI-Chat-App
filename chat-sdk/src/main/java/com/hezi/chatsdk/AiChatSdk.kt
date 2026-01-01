@@ -6,6 +6,7 @@ import com.hezi.chatsdk.core.models.ChatRequest
 import com.hezi.chatsdk.core.models.ChatResponse
 import com.hezi.chatsdk.core.models.StreamEvent
 import com.hezi.chatsdk.di.SdkConfig
+import com.hezi.chatsdk.provider_router.ProviderRouter
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -54,7 +55,11 @@ class AiChatSdk @Inject constructor(
     fun getAvailableProviders(): List<Provider> {
         return router.getAvailableProviders()
     }
-    
+
+    fun getProvider(providerName: String): Provider {
+        return router.getProvider(providerName)
+    }
+
     /**
      * Perform a standard (non-streaming) chat completion
      */
