@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hezi.aichatapp.ui.chat.UiMessage
-import com.hezi.chatsdk.core.models.MessageRole
+import com.hezi.aichatapp.ui.chat.UiMessageType
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -24,17 +24,18 @@ fun MessageBubble(
     message: UiMessage,
     modifier: Modifier = Modifier
 ) {
-    val isUser = message.role == MessageRole.USER
+    val isUser = message.type == UiMessageType.USER
+    val isSystem = message.type == UiMessageType.SYSTEM
     val alignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
-    val backgroundColor = if (isUser) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant
+    val backgroundColor = when {
+        isSystem -> MaterialTheme.colorScheme.tertiaryContainer
+        isUser -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
-    val textColor = if (isUser) {
-        MaterialTheme.colorScheme.onPrimary
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
+    val textColor = when {
+        isSystem -> MaterialTheme.colorScheme.onTertiaryContainer
+        isUser -> MaterialTheme.colorScheme.onPrimary
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Box(

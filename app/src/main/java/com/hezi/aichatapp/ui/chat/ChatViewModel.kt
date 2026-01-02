@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hezi.aichatapp.R
 import com.hezi.aichatapp.commands.CommandHandler
+import com.hezi.aichatapp.ui.chat.UiMessageType
 import com.hezi.chatsdk.AiChatSdk
 import com.hezi.chatsdk.core.config.Provider
 import com.hezi.chatsdk.core.models.ChatMessage
@@ -90,14 +91,14 @@ class ChatViewModel @Inject constructor(
         // Add command message to UI
         val commandMessage = UiMessage(
             id = UUID.randomUUID().toString(),
-            role = MessageRole.USER,
+            type = UiMessageType.USER,
             content = commandText
         )
         
         // Add result message
         val resultMessage = UiMessage(
             id = UUID.randomUUID().toString(),
-            role = MessageRole.SYSTEM,
+            type = UiMessageType.SYSTEM,
             content = resultText
         )
         
@@ -113,7 +114,7 @@ class ChatViewModel @Inject constructor(
         // Add user message to UI
         val userMessage = UiMessage(
             id = UUID.randomUUID().toString(),
-            role = MessageRole.USER,
+            type = UiMessageType.USER,
             content = text
         )
         _uiState.update {
@@ -125,7 +126,7 @@ class ChatViewModel @Inject constructor(
             )
         }
 
-        // Add to conversation history
+        // Add to conversation history (SDK format)
         conversationHistory.add(
             ChatMessage(role = MessageRole.USER, content = text)
         )
@@ -133,14 +134,14 @@ class ChatViewModel @Inject constructor(
         // Send to SDK with streaming
         viewModelScope.launch {
             try {
-                val request = ChatRequest(messages = conversationHistory.toList())
-                val assistantMessageId = UUID.randomUUID().toString()
-                val streamingMessage = UiMessage(
-                    id = assistantMessageId,
-                    role = MessageRole.ASSISTANT,
-                    content = "",
-                    isStreaming = true
-                )
+                    val request = ChatRequest(messages = conversationHistory.toList())
+                    val assistantMessageId = UUID.randomUUID().toString()
+                    val streamingMessage = UiMessage(
+                        id = assistantMessageId,
+                        type = UiMessageType.ASSISTANT,
+                        content = "",
+                        isStreaming = true
+                    )
 
                 // Add empty assistant message for streaming
                 _uiState.update {
