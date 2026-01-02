@@ -39,11 +39,7 @@ class ChatViewModel @Inject constructor(
     init {
         // Get initial provider from SDK configuration
         val config = sdk.getConfiguration()
-        _currentProvider.value = sdk.getAvailableProviders().find { it.name == config.providerName }
-    }
-
-    fun getAvailableProviders(): List<Provider> {
-        return sdk.getAvailableProviders()
+        _currentProvider.value = sdk.getProvider(config.providerName)
     }
 
     fun getCurrentModel(): String {
@@ -53,21 +49,6 @@ class ChatViewModel @Inject constructor(
     fun refreshProviderState() {
         val config = sdk.getConfiguration()
         _currentProvider.value = sdk.getProvider(config.providerName)
-    }
-
-    fun changeProvider(provider: Provider) {
-        sdk.updateConfiguration { copy(providerName = provider.name) }
-        _currentProvider.value = provider
-    }
-
-    fun changeProviderAndModel(provider: Provider, model: String) {
-        sdk.updateConfiguration { 
-            copy(
-                providerName = provider.name,
-                model = model
-            )
-        }
-        _currentProvider.value = provider
     }
 
     fun updateInputText(text: String) {
@@ -129,7 +110,6 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun sendAiMessage(text: String) {
-
         // Add user message to UI
         val userMessage = UiMessage(
             id = UUID.randomUUID().toString(),
