@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hezi.aichatapp.R
 import com.hezi.aichatapp.commands.CommandHandler
-import com.hezi.aichatapp.commands.CommandParser
 import com.hezi.chatsdk.AiChatSdk
 import com.hezi.chatsdk.core.config.Provider
 import com.hezi.chatsdk.core.models.ChatMessage
@@ -26,7 +25,6 @@ import javax.inject.Inject
 class ChatViewModel @Inject constructor(
     private val sdk: AiChatSdk,
     private val commandHandler: CommandHandler,
-    private val commandParser: CommandParser,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -80,53 +78,54 @@ class ChatViewModel @Inject constructor(
         val text = _uiState.value.inputText.trim()
         if (text.isBlank() || _uiState.value.isLoading) return
 
-        // Check if it's a command
-        val command = commandParser.parse(text)
-        if (command != null) {
-            handleCommand(text, command)
-            return
-        }
+        // Try to handle as a command
+        when (val result = commandHandler.handle(text)) {
+            is CommandHandler.CommandResult.NotHandled -> {
+                // Not a command, send as regular message to AI
+                sendAiMessage(text)
+            }
 
-        // Regular message - send to AI
-        sendAiMessage(text)
+            is CommandHandler.CommandResult.Handled -> {
+                // Command was handled, process the result
+                when (result) {
+                    is CommandHandler.CommandResult.Handled.Message -> {
+                        // Show command and result message
+                        addCommandMessages(text, result.text)
+                        // Refresh provider state in case configuration changed (e.g., /model, /temp)
+                        refreshProviderState()
+                    }
+
+                    is CommandHandler.CommandResult.Handled.ClearHistory -> {
+                        // Clear command - only affects conversation history, not configuration
+                        addCommandMessages(text, context.getString(R.string.conversation_cleared))
+                        clearConversation()
+                    }
+                }
+            }
+        }
     }
 
-    private fun handleCommand(commandText: String, command: com.hezi.aichatapp.commands.Command) {
+    private fun addCommandMessages(commandText: String, resultText: String) {
         // Add command message to UI
         val commandMessage = UiMessage(
             id = UUID.randomUUID().toString(),
             role = MessageRole.USER,
             content = commandText
         )
+        
+        // Add result message
+        val resultMessage = UiMessage(
+            id = UUID.randomUUID().toString(),
+            role = MessageRole.SYSTEM,
+            content = resultText
+        )
+        
         _uiState.update {
             it.copy(
-                messages = it.messages + commandMessage,
+                messages = it.messages + commandMessage + resultMessage,
                 inputText = ""
             )
         }
-
-        // Execute command
-        when (val result = commandHandler.handle(command)) {
-            is CommandHandler.CommandResult.Message -> {
-                // Show result message
-                val resultMessage = UiMessage(
-                    id = UUID.randomUUID().toString(),
-                    role = MessageRole.SYSTEM,
-                    content = result.text
-                )
-                _uiState.update {
-                    it.copy(messages = it.messages + resultMessage)
-                }
-            }
-
-            is CommandHandler.CommandResult.ClearHistory -> {
-                clearConversation()
-            }
-        }
-
-        // Update current provider if it changed
-        val config = sdk.getConfiguration()
-        _currentProvider.value = sdk.getAvailableProviders().find { it.name == config.providerName }
     }
 
     private fun sendAiMessage(text: String) {
