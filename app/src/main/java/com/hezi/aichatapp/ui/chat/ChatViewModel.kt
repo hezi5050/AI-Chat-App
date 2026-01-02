@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hezi.aichatapp.R
 import com.hezi.aichatapp.commands.CommandHandler
+import com.hezi.aichatapp.data.DiagnosticsRepository
 import com.hezi.aichatapp.ui.chat.UiMessageType
 import com.hezi.chatsdk.AiChatSdk
 import com.hezi.chatsdk.core.config.Provider
@@ -26,6 +27,7 @@ import javax.inject.Inject
 class ChatViewModel @Inject constructor(
     private val sdk: AiChatSdk,
     private val commandHandler: CommandHandler,
+    private val diagnosticsRepository: DiagnosticsRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -133,15 +135,19 @@ class ChatViewModel @Inject constructor(
 
         // Send to SDK with streaming
         viewModelScope.launch {
+            val config = sdk.getConfiguration()
+            val provider = sdk.getProvider(config.providerName)
+            val streamStartTime = System.currentTimeMillis()
+            
             try {
-                    val request = ChatRequest(messages = conversationHistory.toList())
-                    val assistantMessageId = UUID.randomUUID().toString()
-                    val streamingMessage = UiMessage(
-                        id = assistantMessageId,
-                        type = UiMessageType.ASSISTANT,
-                        content = "",
-                        isStreaming = true
-                    )
+                val request = ChatRequest(messages = conversationHistory.toList())
+                val assistantMessageId = UUID.randomUUID().toString()
+                val streamingMessage = UiMessage(
+                    id = assistantMessageId,
+                    type = UiMessageType.ASSISTANT,
+                    content = "",
+                    isStreaming = true
+                )
 
                 // Add empty assistant message for streaming
                 _uiState.update {
@@ -167,6 +173,15 @@ class ChatViewModel @Inject constructor(
                         }
 
                         is StreamEvent.Complete -> {
+                            val latency = System.currentTimeMillis() - streamStartTime
+                            
+                            // Record success in diagnostics
+                            diagnosticsRepository.recordSuccess(
+                                provider = provider.name,
+                                model = config.model,
+                                latencyMs = latency
+                            )
+                            
                             // Finalize the message
                             _uiState.update { state ->
                                 val updatedMessages = state.messages.map { msg ->
@@ -195,28 +210,44 @@ class ChatViewModel @Inject constructor(
                             )
                         }
 
-                            is StreamEvent.Error -> {
-                                // Remove the streaming message and show error
-                                _uiState.update { state ->
-                                    state.copy(
-                                        messages = state.messages.filter { it.id != assistantMessageId },
-                                        isLoading = false,
-                                        isStreaming = false,
-                                        error = context.getString(
-                                            R.string.error_format,
-                                            event.error.message ?: context.getString(R.string.error_unknown)
-                                        )
+                        is StreamEvent.Error -> {
+                            // Record error in diagnostics
+                            diagnosticsRepository.recordError(
+                                provider = provider.name,
+                                model = config.model,
+                                errorMessage = event.error.message ?: context.getString(R.string.unknown_error)
+                            )
+                            
+                            // Remove the streaming message and show error
+                            _uiState.update { state ->
+                                state.copy(
+                                    messages = state.messages.filter { it.id != assistantMessageId },
+                                    isLoading = false,
+                                    isStreaming = false,
+                                    error = context.getString(
+                                        R.string.chat_error_streaming_failed,
+                                        event.error.message ?: context.getString(R.string.unknown_error)
                                     )
-                                }
+                                )
                             }
+                        }
                     }
                 }
             } catch (e: Exception) {
+                // Record error in diagnostics
+                val config = sdk.getConfiguration()
+                val provider = sdk.getProvider(config.providerName)
+                diagnosticsRepository.recordError(
+                    provider = provider.name,
+                    model = config.model,
+                    errorMessage = e.message ?: context.getString(R.string.unknown_error)
+                )
+                
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         isStreaming = false,
-                        error = context.getString(R.string.error_send_message, e.message ?: context.getString(R.string.error_unknown))
+                        error = context.getString(R.string.chat_error_send_failed, e.message ?: context.getString(R.string.unknown_error))
                     )
                 }
             }

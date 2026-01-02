@@ -4,9 +4,12 @@
 
     <!-- Common -->
     <string name="back">Back</string>
+    <string name="back_button_description">Back</string>
     <string name="menu">Menu</string>
+    <string name="menu_button_description">Menu</string>
     <string name="loading">Loading…</string>
     <string name="save_settings">Save Settings</string>
+    <string name="save_settings_button">Save Settings</string>
     <string name="conversation_cleared">Conversation cleared</string>
 
     <!-- Chat Screen -->
@@ -19,6 +22,7 @@
     
     <!-- Settings Screen -->
     <string name="settings">Settings</string>
+    <string name="diagnostics">Diagnostics</string>
     
     <!-- Provider Selection -->
     <string name="ai_provider">AI Provider</string>
@@ -47,8 +51,10 @@
     
     <!-- Error Messages -->
     <string name="error_format">Error: %s</string>
-    <string name="error_unknown">Unknown error</string>
+    <string name="unknown_error">Unknown error</string>
     <string name="error_send_message">Failed to send message: %s</string>
+    <string name="chat_error_streaming_failed">Streaming error: %1$s</string>
+    <string name="chat_error_send_failed">Failed to send message: %1$s</string>
     
     <!-- Commands -->
     <string name="command_usage_model">Usage: /model &lt;model_name&gt; or /model &lt;provider:model&gt;</string>
@@ -85,4 +91,22 @@
     <string name="help_tokens">/tokens &lt;value&gt; - Set max tokens</string>
     <string name="help_config">/config - Show current configuration</string>
     <string name="help_help">/help - Show this help message</string>
+    
+    <!-- Diagnostics Screen -->
+    <string name="diagnostics_title">Diagnostics</string>
+    <string name="diagnostics_active_config">Active Configuration</string>
+    <string name="diagnostics_performance">Performance Metrics</string>
+    <string name="diagnostics_logs_title">Request Logs</string>
+    <string name="diagnostics_provider">Provider</string>
+    <string name="diagnostics_model">Model</string>
+    <string name="diagnostics_latency">Last Request Latency</string>
+    <string name="diagnostics_total_requests">Total Requests:</string>
+    <string name="diagnostics_successful">Successful:</string>
+    <string name="diagnostics_failed">Failed:</string>
+    <string name="diagnostics_last_error">Last Error</string>
+    <string name="diagnostics_no_data">No logs available yet.</string>
+    <string name="diagnostics_status_healthy">Healthy</string>
+    <string name="diagnostics_status_error">Error</string>
+    <string name="diagnostics_status_operational">All systems operational</string>
+    <string name="diagnostics_status_check_errors">Check errors below</string>
 </resources>
