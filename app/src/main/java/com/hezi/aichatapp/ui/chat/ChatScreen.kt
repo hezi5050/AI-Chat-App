@@ -1,5 +1,6 @@
 package com.hezi.aichatapp.ui.chat
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
@@ -68,6 +69,13 @@ fun ChatScreen(
         viewModel.refreshProviderState()
     }
 
+    // Handle back press when drawer is open
+    BackHandler(enabled = drawerState.isOpen) {
+        scope.launch {
+            drawerState.close()
+        }
+    }
+
     // Show error in snackbar
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
@@ -108,7 +116,7 @@ fun ChatScreen(
                 )
                 
                 NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Info, contentDescription = null) },
+                    icon = { Icon(Icons.Default.Assessment, contentDescription = null) },
                     label = { Text(stringResource(R.string.diagnostics)) },
                     selected = false,
                     onClick = {

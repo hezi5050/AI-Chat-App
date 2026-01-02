@@ -1,5 +1,6 @@
 package com.hezi.aichatapp.ui.settings
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,6 +70,7 @@ fun SettingsScreen(
     var isModelDropdownExpanded by remember { mutableStateOf(false) }
     var temperature by remember { mutableFloatStateOf(currentConfig.temperature) }
     var maxTokens by remember { mutableStateOf(currentConfig.maxTokens.toString()) }
+    var isSaving by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
     val showFadingEdge by remember {
@@ -170,18 +172,22 @@ fun SettingsScreen(
             // Button below the scrollable content
             Button(
                 onClick = {
-                    selectedProvider?.let { provider ->
-                        val maxTokensValue = maxTokens.toIntOrNull() ?: currentConfig.maxTokens
-                        viewModel.updateAllSettings(
-                            provider = provider,
-                            model = selectedModel,
-                            temperature = temperature,
-                            maxTokens = maxTokensValue
-                        )
-                        onNavigateBack()
+                    if (!isSaving) {
+                        isSaving = true
+                        selectedProvider?.let { provider ->
+                            val maxTokensValue = maxTokens.toIntOrNull() ?: currentConfig.maxTokens
+                            viewModel.updateAllSettings(
+                                provider = provider,
+                                model = selectedModel,
+                                temperature = temperature,
+                                maxTokens = maxTokensValue
+                            )
+                            onNavigateBack()
+                        }
                     }
                 },
-                enabled = selectedProvider != null && 
+                enabled = !isSaving && 
+                         selectedProvider != null && 
                          selectedModel.isNotBlank() &&
                          maxTokens.isNotEmpty() && 
                          maxTokens.toIntOrNull() != null && 
