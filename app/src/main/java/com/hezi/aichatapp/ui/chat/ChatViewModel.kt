@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.hezi.aichatapp.R
 import com.hezi.aichatapp.commands.CommandHandler
 import com.hezi.aichatapp.data.DiagnosticsRepository
-import com.hezi.aichatapp.ui.chat.UiMessageType
+import com.hezi.aichatapp.data.repository.ConversationRepository
 import com.hezi.chatsdk.AiChatSdk
 import com.hezi.chatsdk.core.config.Provider
 import com.hezi.chatsdk.core.models.ChatMessage
@@ -28,17 +28,20 @@ class ChatViewModel @Inject constructor(
     private val sdk: AiChatSdk,
     private val commandHandler: CommandHandler,
     private val diagnosticsRepository: DiagnosticsRepository,
+    private val conversationRepository: ConversationRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
-    
+
     private val _currentProvider = MutableStateFlow<Provider?>(null)
     val currentProvider: StateFlow<Provider?> = _currentProvider.asStateFlow()
 
+    private var currentConversationId: Long? = null
+
     private val conversationHistory = mutableListOf<ChatMessage>()
-    
+
     init {
         // Get initial provider from SDK configuration
         val config = sdk.getConfiguration()
@@ -52,6 +55,73 @@ class ChatViewModel @Inject constructor(
     fun refreshProviderState() {
         val config = sdk.getConfiguration()
         _currentProvider.value = sdk.getProvider(config.providerName)
+    }
+
+    suspend fun createNewConversation(firstMessage: String? = null): Long {
+        val config = sdk.getConfiguration()
+        // Use first message as title, truncated to 50 chars, or default title
+        val title = firstMessage?.take(50) ?: "New Conversation"
+        val conversationId = conversationRepository.createConversation(
+            title = title,
+            providerName = config.providerName,
+            model = config.model
+        )
+        currentConversationId = conversationId
+        return conversationId
+    }
+
+    fun loadConversation(conversationId: Long) {
+        viewModelScope.launch {
+            val conversationWithMessages = conversationRepository.getConversationWithMessages(conversationId)
+
+            if (conversationWithMessages != null) {
+                currentConversationId = conversationId
+
+                // Clear current state
+                conversationHistory.clear()
+
+                // Load messages into UI
+                _uiState.update {
+                    it.copy(messages = conversationWithMessages.messages)
+                }
+
+                // Rebuild conversation history for SDK (only user and assistant messages)
+                conversationWithMessages.messages.forEach { uiMessage ->
+                    when (uiMessage.type) {
+                        UiMessageType.USER -> {
+                            conversationHistory.add(
+                                ChatMessage(role = MessageRole.USER, content = uiMessage.content)
+                            )
+                        }
+
+                        UiMessageType.ASSISTANT -> {
+                            conversationHistory.add(
+                                ChatMessage(role = MessageRole.ASSISTANT, content = uiMessage.content)
+                            )
+                        }
+
+                        UiMessageType.SYSTEM -> {
+                            // System messages are not added to SDK conversation history
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun startNewConversation() {
+        // Clear UI and conversation history, but don't create DB entry until first message
+        clearConversation()
+        currentConversationId = null
+    }
+
+    private fun deleteCurrentConversation() {
+        viewModelScope.launch {
+            currentConversationId?.let { convId ->
+                conversationRepository.deleteConversation(convId)
+                currentConversationId = null
+            }
+        }
     }
 
     fun updateInputText(text: String) {
@@ -80,8 +150,9 @@ class ChatViewModel @Inject constructor(
                     }
 
                     is CommandHandler.CommandResult.Handled.ClearHistory -> {
-                        // Clear command - only affects conversation history, not configuration
+                        // Clear command - delete conversation from database and clear UI
                         addCommandMessages(text, context.getString(R.string.conversation_cleared))
+                        deleteCurrentConversation()
                         clearConversation()
                     }
                 }
@@ -90,26 +161,28 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun addCommandMessages(commandText: String, resultText: String) {
-        // Add command message to UI
+        // Add command message to UI (commands are NOT saved to database)
         val commandMessage = UiMessage(
             id = UUID.randomUUID().toString(),
             type = UiMessageType.USER,
             content = commandText
         )
-        
+
         // Add result message
         val resultMessage = UiMessage(
             id = UUID.randomUUID().toString(),
             type = UiMessageType.SYSTEM,
             content = resultText
         )
-        
+
         _uiState.update {
             it.copy(
                 messages = it.messages + commandMessage + resultMessage,
                 inputText = ""
             )
         }
+
+        // Commands are not persisted to database - they are transient UI messages only
     }
 
     private fun sendAiMessage(text: String) {
@@ -128,6 +201,25 @@ class ChatViewModel @Inject constructor(
             )
         }
 
+        // Save user message to database (create conversation if needed)
+        viewModelScope.launch {
+            var convId = currentConversationId
+
+            // Create conversation if it doesn't exist yet (use first message as title)
+            if (convId == null) {
+                convId = createNewConversation(firstMessage = text)
+            }
+
+            try {
+                conversationRepository.saveMessage(convId, userMessage)
+            } catch (e: Exception) {
+                createNewConversation(firstMessage = text)
+                currentConversationId?.let { newConvId ->
+                    conversationRepository.saveMessage(newConvId, userMessage)
+                }
+            }
+        }
+
         // Add to conversation history (SDK format)
         conversationHistory.add(
             ChatMessage(role = MessageRole.USER, content = text)
@@ -138,7 +230,7 @@ class ChatViewModel @Inject constructor(
             val config = sdk.getConfiguration()
             val provider = sdk.getProvider(config.providerName)
             val streamStartTime = System.currentTimeMillis()
-            
+
             try {
                 val request = ChatRequest(messages = conversationHistory.toList())
                 val assistantMessageId = UUID.randomUUID().toString()
@@ -174,7 +266,7 @@ class ChatViewModel @Inject constructor(
 
                         is StreamEvent.Complete -> {
                             val latency = System.currentTimeMillis() - streamStartTime
-                            
+
                             // Record success in diagnostics
                             diagnosticsRepository.recordSuccess(
                                 provider = provider.name,
@@ -182,15 +274,19 @@ class ChatViewModel @Inject constructor(
                                 latencyMs = latency,
                                 tokenUsage = event.response.tokenUsage
                             )
-                            
+
                             // Finalize the message
+                            val finalMessage = UiMessage(
+                                id = assistantMessageId,
+                                type = UiMessageType.ASSISTANT,
+                                content = event.response.text,
+                                isStreaming = false
+                            )
+
                             _uiState.update { state ->
                                 val updatedMessages = state.messages.map { msg ->
                                     if (msg.id == assistantMessageId) {
-                                        msg.copy(
-                                            content = event.response.text,
-                                            isStreaming = false
-                                        )
+                                        finalMessage
                                     } else {
                                         msg
                                     }
@@ -200,6 +296,18 @@ class ChatViewModel @Inject constructor(
                                     isLoading = false,
                                     isStreaming = false
                                 )
+                            }
+
+                            // Save assistant message to database (ensure conversation exists)
+                            viewModelScope.launch {
+                                val convId = currentConversationId
+                                if (convId != null) {
+                                    try {
+                                        conversationRepository.saveMessage(convId, finalMessage)
+                                    } catch (e: Exception) {
+                                        // If save fails, log but don't crash (message is already in UI)
+                                    }
+                                }
                             }
 
                             // Add to conversation history
@@ -218,7 +326,7 @@ class ChatViewModel @Inject constructor(
                                 model = config.model,
                                 errorMessage = event.error.message ?: context.getString(R.string.unknown_error)
                             )
-                            
+
                             // Remove the streaming message and show error
                             _uiState.update { state ->
                                 state.copy(
@@ -243,12 +351,15 @@ class ChatViewModel @Inject constructor(
                     model = config.model,
                     errorMessage = e.message ?: context.getString(R.string.unknown_error)
                 )
-                
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         isStreaming = false,
-                        error = context.getString(R.string.chat_error_send_failed, e.message ?: context.getString(R.string.unknown_error))
+                        error = context.getString(
+                            R.string.chat_error_send_failed,
+                            e.message ?: context.getString(R.string.unknown_error)
+                        )
                     )
                 }
             }

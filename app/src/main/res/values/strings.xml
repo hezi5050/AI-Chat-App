@@ -20,6 +20,16 @@
     <string name="type_message">Type a message…</string>
     <string name="send_message">Send message</string>
     
+    <!-- Conversations -->
+    <string name="new_conversation">New Conversation</string>
+    <string name="conversation_history">Conversation History</string>
+    <string name="conversations_title">Conversations</string>
+    <string name="conversations_empty">No conversations yet.\nStart chatting to create one!</string>
+    <string name="conversation_provider_model">%1$s · %2$s</string>
+    <string name="conversation_messages_count">%d messages</string>
+    <string name="conversation_date_format">MMM dd, yyyy HH:mm</string>
+    <string name="conversation_delete">Delete conversation</string>
+    
     <!-- Settings Screen -->
     <string name="settings">Settings</string>
     <string name="diagnostics">Diagnostics</string>
