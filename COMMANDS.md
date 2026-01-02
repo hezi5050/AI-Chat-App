@@ -196,6 +196,34 @@ Max tokens set to: 1000
 
 ---
 
+### `/stats`
+Displays performance statistics including total requests, successful/failed counts, and the 10 most recent request logs.
+
+**Usage:**
+```
+/stats
+```
+
+**Example Output:**
+```
+Performance Statistics:
+
+Performance Metrics
+Total Requests: 15
+Successful: 13
+Failed: 2
+
+Request Logs
+{ provider: "openai", model: "gpt-4o-mini", latencyMs: 240 }
+{ provider: "openai", model: "gpt-4o", latencyMs: 380 }
+{ provider: "openai", model: "gpt-4o-mini", error: "Network timeout" }
+... and 12 more logs (see Diagnostics screen for full history)
+```
+
+**Note:** Only the 10 most recent logs are shown. For complete history, open the Diagnostics screen from the menu.
+
+---
+
 ## Command Features
 
 ### Case Sensitivity

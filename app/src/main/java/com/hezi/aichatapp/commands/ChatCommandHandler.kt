@@ -2,6 +2,8 @@ package com.hezi.aichatapp.commands
 
 import android.content.Context
 import com.hezi.aichatapp.R
+import com.hezi.aichatapp.data.DiagnosticsRepository
+import com.hezi.aichatapp.data.LogInfo
 import com.hezi.chatsdk.AiChatSdk
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -9,7 +11,8 @@ import javax.inject.Inject
 class ChatCommandHandler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val commandParser: CommandParser,
-    private val sdk: AiChatSdk
+    private val sdk: AiChatSdk,
+    private val diagnosticsRepository: DiagnosticsRepository
 ) : CommandHandler {
 
     /**
@@ -74,27 +77,63 @@ class ChatCommandHandler @Inject constructor(
                 )
             }
 
-            is Command.ShowConfig -> {
-                val config = sdk.getConfiguration()
-                val provider = sdk.getAvailableProviders().find { it.name == config.providerName }
-                val configText = buildString {
-                    appendLine(context.getString(R.string.config_title))
-                    appendLine(context.getString(R.string.config_provider, provider?.name ?: config.providerName))
-                    appendLine(context.getString(R.string.config_model, config.model))
-                    appendLine(context.getString(R.string.config_temperature, config.temperature))
-                    appendLine(context.getString(R.string.config_max_tokens, config.maxTokens))
-                    if (provider != null) {
-                        appendLine()
-                        appendLine(context.getString(R.string.config_available_models, provider.name))
-                        provider.models.forEach { model ->
-                            appendLine(context.getString(R.string.config_model_item, model))
+                is Command.ShowConfig -> {
+                    val config = sdk.getConfiguration()
+                    val provider = sdk.getAvailableProviders().find { it.name == config.providerName }
+                    val configText = buildString {
+                        appendLine(context.getString(R.string.config_title))
+                        appendLine(context.getString(R.string.config_provider, provider?.name ?: config.providerName))
+                        appendLine(context.getString(R.string.config_model, config.model))
+                        appendLine(context.getString(R.string.config_temperature, config.temperature))
+                        appendLine(context.getString(R.string.config_max_tokens, config.maxTokens))
+                        if (provider != null) {
+                            appendLine()
+                            appendLine(context.getString(R.string.config_available_models, provider.name))
+                            provider.models.forEach { model ->
+                                appendLine(context.getString(R.string.config_model_item, model))
+                            }
                         }
                     }
+                    CommandHandler.CommandResult.Handled.Message(configText.trim())
                 }
-                CommandHandler.CommandResult.Handled.Message(configText.trim())
-            }
 
-            is Command.Help -> {
+                is Command.ShowStats -> {
+                    val diagnosticsInfo = diagnosticsRepository.getDiagnosticsInfo()
+                    val logsList = diagnosticsRepository.getLogsList()
+                    
+                    val statsText = buildString {
+                        appendLine(context.getString(R.string.stats_title))
+                        appendLine()
+                        appendLine(context.getString(R.string.diagnostics_performance))
+                        appendLine(context.getString(R.string.stats_total_requests, diagnosticsInfo.totalRequests))
+                        appendLine(context.getString(R.string.stats_successful, diagnosticsInfo.successfulRequests))
+                        appendLine(context.getString(R.string.stats_failed, diagnosticsInfo.failedRequests))
+                        
+                        if (logsList.isNotEmpty()) {
+                            appendLine()
+                            appendLine(context.getString(R.string.diagnostics_logs_title))
+                            logsList.reversed().take(10).forEach { logInfo ->
+                                when (logInfo) {
+                                    is LogInfo.Success -> {
+                                        appendLine("{ provider: \"${logInfo.provider}\", model: \"${logInfo.model}\", latencyMs: ${logInfo.latencyMs} }")
+                                    }
+                                    is LogInfo.Error -> {
+                                        appendLine("{ provider: \"${logInfo.provider}\", model: \"${logInfo.model}\", error: \"${logInfo.errorMessage}\" }")
+                                    }
+                                }
+                            }
+                            if (logsList.size > 10) {
+                                appendLine(context.getString(R.string.stats_more_logs, logsList.size - 10))
+                            }
+                        } else {
+                            appendLine()
+                            appendLine(context.getString(R.string.diagnostics_no_data))
+                        }
+                    }
+                    CommandHandler.CommandResult.Handled.Message(statsText.trim())
+                }
+
+                is Command.Help -> {
                 val availableProviders = sdk.getAvailableProviders()
                 val helpText = buildString {
                     appendLine(context.getString(R.string.help_title))
@@ -105,10 +144,11 @@ class ChatCommandHandler @Inject constructor(
                         val exampleModel = provider.models.firstOrNull() ?: "model-name"
                         appendLine(context.getString(R.string.help_model_example_item, provider.name, exampleModel))
                     }
-                    appendLine(context.getString(R.string.help_temp))
-                    appendLine(context.getString(R.string.help_tokens))
-                    appendLine(context.getString(R.string.help_config))
-                    appendLine(context.getString(R.string.help_help))
+                        appendLine(context.getString(R.string.help_temp))
+                        appendLine(context.getString(R.string.help_tokens))
+                        appendLine(context.getString(R.string.help_config))
+                        appendLine(context.getString(R.string.help_stats))
+                        appendLine(context.getString(R.string.help_help))
                 }
                 CommandHandler.CommandResult.Handled.Message(helpText.trim())
             }

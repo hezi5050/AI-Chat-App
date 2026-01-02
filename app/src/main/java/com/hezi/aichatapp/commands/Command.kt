@@ -35,6 +35,11 @@ sealed class Command {
     data object ShowConfig : Command()
 
     /**
+     * Show performance statistics
+     */
+    data object ShowStats : Command()
+
+    /**
      * Show available commands
      */
     data object Help : Command()

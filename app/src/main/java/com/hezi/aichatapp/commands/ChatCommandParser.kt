@@ -53,9 +53,11 @@ class ChatCommandParser @Inject constructor(
                 }
             }
 
-            "config" -> Command.ShowConfig
+                "config" -> Command.ShowConfig
 
-            "help" -> Command.Help
+                "stats" -> Command.ShowStats
+
+                "help" -> Command.Help
 
             else -> Command.Invalid(
                 context.getString(R.string.command_unknown, commandName)

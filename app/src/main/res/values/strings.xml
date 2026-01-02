@@ -90,7 +90,15 @@
     <string name="help_temp">/temp &lt;value&gt; - Set temperature (0.0-2.0)</string>
     <string name="help_tokens">/tokens &lt;value&gt; - Set max tokens</string>
     <string name="help_config">/config - Show current configuration</string>
+    <string name="help_stats">/stats - Show performance statistics</string>
     <string name="help_help">/help - Show this help message</string>
+
+    <!-- Stats Command -->
+    <string name="stats_title">Performance Statistics:</string>
+    <string name="stats_total_requests">Total Requests: %d</string>
+    <string name="stats_successful">Successful: %d</string>
+    <string name="stats_failed">Failed: %d</string>
+    <string name="stats_more_logs">... and %d more logs (see Diagnostics screen for full history)</string>
     
     <!-- Diagnostics Screen -->
     <string name="diagnostics_title">Diagnostics</string>
