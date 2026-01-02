@@ -197,7 +197,7 @@ Max tokens set to: 1000
 ---
 
 ### `/stats`
-Displays performance statistics including total requests, successful/failed counts, and the 10 most recent request logs.
+Displays performance statistics including total requests, successful/failed counts, token usage, and the 10 most recent request logs.
 
 **Usage:**
 ```
@@ -212,6 +212,9 @@ Performance Metrics
 Total Requests: 15
 Successful: 13
 Failed: 2
+Prompt Tokens: 1250
+Completion Tokens: 3780
+Total Tokens: 5030
 
 Request Logs
 { provider: "openai", model: "gpt-4o-mini", latencyMs: 240 }
@@ -220,7 +223,10 @@ Request Logs
 ... and 12 more logs (see Diagnostics screen for full history)
 ```
 
-**Note:** Only the 10 most recent logs are shown. For complete history, open the Diagnostics screen from the menu.
+**Note:** 
+- Only the 10 most recent logs are shown
+- Token usage shows cumulative totals across all successful requests
+- For complete history and detailed diagnostics, open the Diagnostics screen from the menu
 
 ---
 

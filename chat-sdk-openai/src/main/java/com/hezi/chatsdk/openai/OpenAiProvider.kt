@@ -66,13 +66,15 @@ class OpenAiProvider(
     override fun chatStream(request: ChatRequest, config: SdkConfiguration): Flow<StreamEvent> = flow {
         val startTime = System.currentTimeMillis()
         val accumulatedText = StringBuilder()
+        var tokenUsage: TokenUsage? = null
         
         val openAiRequest = OpenAiChatRequest(
             model = config.model,
             messages = request.messages.map { it.toOpenAiMessage() },
             temperature = config.temperature,
             maxTokens = config.maxTokens,
-            stream = true
+            stream = true,
+            streamOptions = StreamOptions(includeUsage = true)
         )
         
         try {
@@ -110,6 +112,15 @@ class OpenAiProvider(
                                     accumulatedText.append(content)
                                     emit(StreamEvent.Delta(content))
                                 }
+                                
+                                // Capture token usage from the final chunk
+                                streamResponse.usage?.let { usage ->
+                                    tokenUsage = TokenUsage(
+                                        promptTokens = usage.promptTokens,
+                                        completionTokens = usage.completionTokens,
+                                        totalTokens = usage.totalTokens
+                                    )
+                                }
                             } catch (e: Exception) {
                                 // Ignore parsing errors for SSE
                             }
@@ -126,7 +137,7 @@ class OpenAiProvider(
                         provider = providerInfo,
                         model = config.model,
                         latencyMs = latency,
-                        tokenUsage = null
+                        tokenUsage = tokenUsage
                     )
                 )
             )

@@ -10,7 +10,9 @@ data class OpenAiChatRequest(
     val temperature: Float? = null,
     @SerialName("max_tokens")
     val maxTokens: Int? = null,
-    val stream: Boolean = false
+    val stream: Boolean = false,
+    @SerialName("stream_options")
+    val streamOptions: StreamOptions? = null
 )
 
 @Serializable
@@ -46,10 +48,17 @@ data class OpenAiUsage(
 )
 
 @Serializable
+data class StreamOptions(
+    @SerialName("include_usage")
+    val includeUsage: Boolean = true
+)
+
+@Serializable
 data class OpenAiStreamResponse(
     val id: String,
     val model: String,
-    val choices: List<OpenAiStreamChoice>
+    val choices: List<OpenAiStreamChoice>,
+    val usage: OpenAiUsage? = null
 )
 
 @Serializable

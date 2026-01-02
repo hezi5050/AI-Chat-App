@@ -179,7 +179,8 @@ class ChatViewModel @Inject constructor(
                             diagnosticsRepository.recordSuccess(
                                 provider = provider.name,
                                 model = config.model,
-                                latencyMs = latency
+                                latencyMs = latency,
+                                tokenUsage = event.response.tokenUsage
                             )
                             
                             // Finalize the message

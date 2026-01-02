@@ -99,6 +99,21 @@ fun DiagnosticsScreen(
                     label = stringResource(R.string.diagnostics_failed),
                     value = diagnosticsInfo.failedRequests.toString()
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                MetricRow(
+                    label = stringResource(R.string.diagnostics_prompt_tokens),
+                    value = diagnosticsInfo.totalPromptTokens.toString()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                MetricRow(
+                    label = stringResource(R.string.diagnostics_completion_tokens),
+                    value = diagnosticsInfo.totalCompletionTokens.toString()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                MetricRow(
+                    label = stringResource(R.string.diagnostics_total_tokens),
+                    value = diagnosticsInfo.totalTokens.toString()
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))

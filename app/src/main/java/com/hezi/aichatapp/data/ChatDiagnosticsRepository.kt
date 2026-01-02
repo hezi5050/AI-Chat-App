@@ -1,5 +1,6 @@
 package com.hezi.aichatapp.data
 
+import com.hezi.chatsdk.core.models.TokenUsage
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,7 +16,7 @@ class ChatDiagnosticsRepository @Inject constructor() : DiagnosticsRepository {
     /**
      * Record a successful request with response data
      */
-    override fun recordSuccess(provider: String, model: String, latencyMs: Long) {
+    override fun recordSuccess(provider: String, model: String, latencyMs: Long, tokenUsage: TokenUsage?) {
         val newEntry = LogInfo.Success(
             provider = provider,
             model = model,
@@ -23,9 +24,17 @@ class ChatDiagnosticsRepository @Inject constructor() : DiagnosticsRepository {
         )
 
         logsList.add(newEntry)
+        
+        val promptTokens = tokenUsage?.promptTokens ?: 0
+        val completionTokens = tokenUsage?.completionTokens ?: 0
+        val tokens = tokenUsage?.totalTokens ?: 0
+        
         diagnosticsInfo = diagnosticsInfo.copy(
             totalRequests = diagnosticsInfo.totalRequests + 1,
-            successfulRequests = diagnosticsInfo.successfulRequests + 1
+            successfulRequests = diagnosticsInfo.successfulRequests + 1,
+            totalPromptTokens = diagnosticsInfo.totalPromptTokens + promptTokens,
+            totalCompletionTokens = diagnosticsInfo.totalCompletionTokens + completionTokens,
+            totalTokens = diagnosticsInfo.totalTokens + tokens
         )
     }
     

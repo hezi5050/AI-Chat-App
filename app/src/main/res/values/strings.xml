@@ -98,6 +98,9 @@
     <string name="stats_total_requests">Total Requests: %d</string>
     <string name="stats_successful">Successful: %d</string>
     <string name="stats_failed">Failed: %d</string>
+    <string name="stats_prompt_tokens">Prompt Tokens: %d</string>
+    <string name="stats_completion_tokens">Completion Tokens: %d</string>
+    <string name="stats_total_tokens">Total Tokens: %d</string>
     <string name="stats_more_logs">... and %d more logs (see Diagnostics screen for full history)</string>
     
     <!-- Diagnostics Screen -->
@@ -111,6 +114,9 @@
     <string name="diagnostics_total_requests">Total Requests:</string>
     <string name="diagnostics_successful">Successful:</string>
     <string name="diagnostics_failed">Failed:</string>
+    <string name="diagnostics_prompt_tokens">Prompt Tokens:</string>
+    <string name="diagnostics_completion_tokens">Completion Tokens:</string>
+    <string name="diagnostics_total_tokens">Total Tokens:</string>
     <string name="diagnostics_last_error">Last Error</string>
     <string name="diagnostics_no_data">No logs available yet.</string>
     <string name="diagnostics_status_healthy">Healthy</string>

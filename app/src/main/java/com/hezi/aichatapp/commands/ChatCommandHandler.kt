@@ -108,6 +108,9 @@ class ChatCommandHandler @Inject constructor(
                         appendLine(context.getString(R.string.stats_total_requests, diagnosticsInfo.totalRequests))
                         appendLine(context.getString(R.string.stats_successful, diagnosticsInfo.successfulRequests))
                         appendLine(context.getString(R.string.stats_failed, diagnosticsInfo.failedRequests))
+                        appendLine(context.getString(R.string.stats_prompt_tokens, diagnosticsInfo.totalPromptTokens))
+                        appendLine(context.getString(R.string.stats_completion_tokens, diagnosticsInfo.totalCompletionTokens))
+                        appendLine(context.getString(R.string.stats_total_tokens, diagnosticsInfo.totalTokens))
                         
                         if (logsList.isNotEmpty()) {
                             appendLine()
