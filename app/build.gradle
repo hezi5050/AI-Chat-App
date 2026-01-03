@@ -46,8 +46,7 @@ dependencies {
     
     // Core Android
     implementation libs.androidx.core.ktx
-    implementation libs.androidx.appcompat
-    implementation libs.material
+    implementation libs.material  // Required for Material3 themes
     
     // Compose
     implementation platform(libs.androidx.compose.bom)
@@ -67,22 +66,10 @@ dependencies {
     implementation libs.androidx.lifecycle.viewmodel.compose
     implementation libs.androidx.lifecycle.runtime.compose
     
-    // Retrofit & OkHttp
-    implementation libs.retrofit
-    implementation libs.retrofit.converter.kotlinx.serialization
-    implementation libs.okhttp
-    implementation libs.okhttp.logging.interceptor
-    
-    // Coroutines
+    // Room Database
     implementation libs.androidx.room.runtime
     implementation libs.androidx.room.ktx
     ksp libs.androidx.room.compiler
-    
-    // Retrofit & OkHttp
-    implementation libs.retrofit
-    implementation libs.retrofit.converter.kotlinx.serialization
-    implementation libs.okhttp
-    implementation libs.okhttp.logging.interceptor
     
     // Coroutines
     implementation libs.kotlinx.coroutines.core
@@ -100,7 +87,6 @@ dependencies {
     testImplementation libs.junit
     testImplementation libs.kotlinx.coroutines.test
     testImplementation libs.mockk
-    testImplementation libs.turbine
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
     androidTestImplementation platform(libs.androidx.compose.bom)
