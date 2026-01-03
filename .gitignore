@@ -13,7 +13,8 @@ captures/
 .externalNativeBuild/
 .cxx/
 *.aab
-*.apk
+# Ignore APKs in build directories only, allow in releases/
+build/**/*.apk
 output-metadata.json
 
 # IntelliJ
