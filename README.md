@@ -102,14 +102,16 @@ graph TD
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### For App Development (Running This Project)
+
+#### Prerequisites
 
 - **Android Studio** Hedgehog (2023.1.1) or later
 - **JDK** 17 or higher
 - **Android SDK** with minimum API level 24
 - **OpenAI API Key** (for OpenAI provider)
 
-### Setup Instructions
+#### Setup Instructions
 
 #### 1. Clone the Repository
 
@@ -151,6 +153,307 @@ Connect a device or start an emulator, then:
 ```
 
 Or use Android Studio's Run button.
+
+---
+
+## 📦 Using the SDK in Your Own Project
+
+The AI Chat SDK is designed to be reusable across projects. Here's how to integrate it into your own Android application:
+
+### Option 1: Copy SDK Modules (Recommended for now)
+
+Since the SDK is not yet published to Maven, you can copy the SDK modules into your project:
+
+#### Step 1: Copy SDK Modules
+
+Copy these directories to your project root:
+```
+your-project/
+├── chat-sdk/
+├── chat-sdk-core/
+├── chat-sdk-openai/
+└── chat-sdk-mock/        # Optional, for testing
+```
+
+#### Step 2: Include Modules in settings.gradle.kts
+
+```kotlin
+include(":app")
+include(":chat-sdk")
+include(":chat-sdk-core")
+include(":chat-sdk-openai")
+include(":chat-sdk-mock")  // Optional
+```
+
+#### Step 3: Add SDK Dependency to Your App Module
+
+In your `app/build.gradle`:
+
+```gradle
+dependencies {
+    // Chat SDK
+    implementation project(':chat-sdk')
+    
+    // Your other dependencies...
+}
+```
+
+#### Step 4: Add Required Dependencies to Your Project
+
+Add to your `gradle/libs.versions.toml` (or equivalent):
+
+```toml
+[versions]
+hilt = "2.52"
+retrofit = "2.11.0"
+okhttp = "4.12.0"
+kotlinxSerialization = "1.7.3"
+coroutines = "1.9.0"
+
+[libraries]
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+
+[plugins]
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+ksp = { id = "com.google.devtools.ksp", version = "2.0.21-1.0.28" }
+```
+
+#### Step 5: Configure OpenAI API Key
+
+Create or update `local.properties`:
+
+```properties
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+#### Step 6: Setup Hilt in Your Application
+
+```kotlin
+@HiltAndroidApp
+class YourApplication : Application()
+```
+
+In your `AndroidManifest.xml`:
+
+```xml
+<application
+    android:name=".YourApplication"
+    ...>
+```
+
+### Using the SDK in Your Code
+
+#### 1. Inject the SDK
+
+```kotlin
+@HiltViewModel
+class YourViewModel @Inject constructor(
+    private val sdk: AiChatSdk
+) : ViewModel() {
+    // Your code
+}
+```
+
+#### 2. Get Available Providers
+
+```kotlin
+val providers = sdk.getAvailableProviders()
+// Returns: List<Provider> with name and models
+
+providers.forEach { provider ->
+    println("Provider: ${provider.name}")
+    println("Models: ${provider.models}")
+}
+```
+
+#### 3. Configure the SDK
+
+```kotlin
+// Get current configuration
+val currentConfig = sdk.getConfiguration()
+
+// Update configuration
+sdk.updateConfiguration { config ->
+    config.copy(
+        providerName = "OpenAI",
+        model = "gpt-4o-mini",
+        temperature = 0.7f,
+        maxTokens = 1000
+    )
+}
+```
+
+#### 4. Send Chat Messages
+
+```kotlin
+import com.hezi.chatsdk.core.models.ChatMessage
+import com.hezi.chatsdk.core.models.MessageRole
+import com.hezi.chatsdk.core.models.StreamEvent
+
+val messages = listOf(
+    ChatMessage(
+        role = MessageRole.USER,
+        content = "Hello, how are you?"
+    )
+)
+
+viewModelScope.launch {
+    sdk.chatStream(messages).collect { event ->
+        when (event) {
+            is StreamEvent.Content -> {
+                // Update UI with content
+                val content = event.content
+                println("Received: $content")
+            }
+            is StreamEvent.Complete -> {
+                // Stream finished
+                val fullResponse = event.response.content
+                val tokenUsage = event.tokenUsage  // Optional: token usage info
+                println("Complete: $fullResponse")
+            }
+            is StreamEvent.Error -> {
+                // Handle error
+                println("Error: ${event.error.message}")
+            }
+        }
+    }
+}
+```
+
+#### 5. Complete Example
+
+```kotlin
+@HiltViewModel
+class ChatViewModel @Inject constructor(
+    private val sdk: AiChatSdk
+) : ViewModel() {
+    
+    private val _messages = MutableStateFlow<List<Message>>(emptyList())
+    val messages: StateFlow<List<Message>> = _messages.asStateFlow()
+    
+    private val conversationHistory = mutableListOf<ChatMessage>()
+    
+    init {
+        // Configure SDK
+        sdk.updateConfiguration { config ->
+            config.copy(
+                providerName = "OpenAI",
+                model = "gpt-4o-mini",
+                temperature = 0.7f,
+                maxTokens = 500
+            )
+        }
+    }
+    
+    fun sendMessage(userMessage: String) {
+        // Add user message to UI
+        _messages.update { it + Message.User(userMessage) }
+        
+        // Add to conversation history
+        conversationHistory.add(
+            ChatMessage(MessageRole.USER, userMessage)
+        )
+        
+        viewModelScope.launch {
+            var assistantMessage = ""
+            
+            sdk.chatStream(conversationHistory).collect { event ->
+                when (event) {
+                    is StreamEvent.Content -> {
+                        assistantMessage += event.content
+                        // Update UI with streaming content
+                        _messages.update { messages ->
+                            messages.dropLast(1) + Message.Assistant(assistantMessage)
+                        }
+                    }
+                    is StreamEvent.Complete -> {
+                        // Add final message to history
+                        conversationHistory.add(
+                            ChatMessage(MessageRole.ASSISTANT, event.response.content)
+                        )
+                    }
+                    is StreamEvent.Error -> {
+                        _messages.update { it + Message.Error(event.error.message) }
+                    }
+                }
+            }
+        }
+    }
+    
+    fun clearConversation() {
+        conversationHistory.clear()
+        _messages.value = emptyList()
+    }
+}
+
+sealed class Message {
+    data class User(val text: String) : Message()
+    data class Assistant(val text: String) : Message()
+    data class Error(val message: String) : Message()
+}
+```
+
+### Available Providers
+
+The SDK comes with:
+
+| Provider | Models | Use Case |
+|----------|--------|----------|
+| **OpenAI** | `gpt-4`, `gpt-4-turbo`, `gpt-4o`, `gpt-4o-mini`, `gpt-3.5-turbo` | Production use with OpenAI API |
+| **Mock** | `default` | Testing without API calls or costs |
+
+### SDK Configuration Options
+
+```kotlin
+data class SdkConfiguration(
+    val providerName: String,      // Provider name (case-insensitive)
+    val model: String,              // Model name (case-sensitive)
+    val temperature: Float = 0.7f,  // 0.0 - 2.0 (creativity)
+    val maxTokens: Int = 500        // Max response length
+)
+```
+
+### Best Practices
+
+1. **Always handle errors** - Network and API errors are common
+2. **Use viewModelScope** - Proper coroutine lifecycle management
+3. **Maintain conversation history** - SDK is stateless, you manage context
+4. **Validate models** - Check `provider.models` before setting
+5. **Configure once** - Set configuration in `init` or before first use
+6. **Use Mock provider for tests** - No API key needed, instant responses
+
+### Troubleshooting
+
+#### Issue: "Provider not found"
+- **Solution**: Ensure provider name matches exactly (case-insensitive): `"OpenAI"`, `"Mock"`
+
+#### Issue: "Model not available"
+- **Solution**: Check available models with `sdk.getProvider(providerName)?.models`
+
+#### Issue: "API key not configured"
+- **Solution**: Ensure `OPENAI_API_KEY` is set in `local.properties`
+
+#### Issue: Hilt injection fails
+- **Solution**: Ensure your Application class is annotated with `@HiltAndroidApp`
+
+### Future: Maven Publishing
+
+We plan to publish the SDK to Maven Central in the future, which will simplify integration:
+
+```gradle
+// Future (not yet available)
+dependencies {
+    implementation 'com.hezi.chatsdk:chat-sdk:1.0.0'
+}
+```
 
 ---
 
