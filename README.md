@@ -116,7 +116,7 @@ graph TD
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/ai-chat-app.git
+git clone https://github.com/hezi5050/AI-Chat-App.git
 cd ai-chat-app
 ```
 
