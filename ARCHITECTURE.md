@@ -2,7 +2,7 @@
 
 ## Overview
 
-A modular Android AI chat application with a custom SDK that abstracts multiple LLM providers (OpenAI, Mock). The SDK is split into separate modules for better separation of concerns, testability, and maintainability.
+A modular Android AI chat application with a custom SDK that abstracts multiple LLM providers (OpenAI, Mock, Gemma). The SDK is split into separate modules for better separation of concerns, testability, and maintainability.
 
 ## Module Structure
 
@@ -12,6 +12,7 @@ ai-chat-app/
 ├── chat-sdk-core/            # Core contracts and interfaces
 ├── chat-sdk-openai/          # OpenAI implementation
 ├── chat-sdk-mock/            # Mock implementation for testing
+├── chat-sdk-gemma/           # Gemma on-device implementation (MediaPipe)
 └── chat-sdk/                 # Aggregator SDK (public API)
 ```
 
@@ -111,7 +112,59 @@ chat-sdk-mock/
 - Simulated token usage
 - Configurable latency
 
-### 4. `chat-sdk` (Aggregator Module)
+### 4. `chat-sdk-gemma` (Gemma On-Device Implementation)
+
+**Purpose**: Implements `LlmProvider` interface for Google's Gemma model using MediaPipe LLM Inference for on-device execution.
+
+**Key Components**:
+- `GemmaProvider` - Implements both standard and streaming chat using MediaPipe
+- `GemmaInferenceManager` - Manages MediaPipe LLM lifecycle (loading, inference, cleanup)
+- `GemmaProviderModule` - Hilt module providing Gemma provider info
+- `GemmaModelPathModule` - Provides configurable model file path
+
+**Dependencies**:
+- `chat-sdk-core` (api)
+- MediaPipe Tasks GenAI (com.google.mediapipe:tasks-genai)
+- Kotlin Coroutines
+- Hilt (for DI integration)
+
+**Package**: `com.hezi.chatsdk.gemma`
+
+**Structure**:
+```
+chat-sdk-gemma/
+└── src/main/java/com/hezi/chatsdk/gemma/
+    ├── GemmaProvider.kt           # LlmProvider implementation
+    ├── GemmaInferenceManager.kt   # MediaPipe lifecycle management
+    └── di/
+        ├── GemmaProviderModule.kt # Provider info Hilt module
+        └── GemmaModelPath.kt      # Model path qualifier and module
+```
+
+**Features**:
+- On-device inference (no network required)
+- Non-streaming chat completions
+- Streaming chat completions with token-by-token emission
+- Gemma chat template formatting
+- Estimated token usage tracking
+- Lazy model initialization
+- Thread-safe inference management
+
+**Model Setup**:
+1. Download Gemma 3 1B-IT model in `.task` format from [Kaggle](https://www.kaggle.com/models/google/gemma-3/tfLite)
+2. Push it to the device: `adb push gemma3-1b-it-int4.task /data/local/tmp/llm/`
+3. Select "Gemma" provider and "gemma-3-1b-it" model in settings
+
+**Chat Template Format**:
+```
+<start_of_turn>user
+{user message}<end_of_turn>
+<start_of_turn>model
+{assistant message}<end_of_turn>
+<start_of_turn>model
+```
+
+### 6. `chat-sdk` (Aggregator Module)
 
 **Purpose**: Public-facing SDK that aggregates all provider implementations and provides networking infrastructure. This is the module that applications depend on.
 
@@ -127,6 +180,7 @@ chat-sdk-mock/
 - `chat-sdk-core` (api)
 - `chat-sdk-openai` (api)
 - `chat-sdk-mock` (api)
+- `chat-sdk-gemma` (api)
 - Retrofit, OkHttp, Kotlin Serialization
 - Hilt (for DI)
 
@@ -152,7 +206,7 @@ chat-sdk/
 - Unified API for all providers
 - Networking infrastructure
 
-### 5. `app` (Android Application)
+### 7. `app` (Android Application)
 
 **Purpose**: Main Android application that consumes the Chat SDK.
 
@@ -455,8 +509,9 @@ ProviderRouter
     └── Passes configuration to each provider
     ↓
 Provider Implementations
-    ├── chat-sdk-openai (OpenAI + streaming + token usage)
-    └── chat-sdk-mock (instant responses)
+    ├── chat-sdk-openai (OpenAI API + streaming + token usage)
+    ├── chat-sdk-mock (instant mock responses)
+    └── chat-sdk-gemma (on-device inference via MediaPipe)
     ↓
 All depend on
 chat-sdk-core (interfaces, models, contracts)
@@ -736,7 +791,8 @@ data class MessageEntity(
 8. ✅ **Documentation** - README with SDK integration guide
 
 ### Future Enhancements
-- Add more providers (Anthropic, Google AI, etc.)
+- Add more providers (Anthropic, Google AI Cloud, etc.)
+- Runtime model downloading for Gemma
 - Implement conversation history management
 - Add token counting utilities
 - Provider health checking and fallbacks
@@ -879,7 +935,7 @@ fun setup() {
 ✅ **All modules compile successfully**  
 ✅ **Hilt dependency injection configured**  
 ✅ **Multi-module architecture implemented**  
-✅ **OpenAI and Mock providers operational**  
+✅ **OpenAI, Mock, and Gemma providers operational**  
 ✅ **All 4 UI screens complete**  
 ✅ **Command system with 57+ tests**  
 ✅ **Room database with persistence**  

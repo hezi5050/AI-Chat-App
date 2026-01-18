@@ -1,7 +1,12 @@
 package com.hezi.chatsdk.di
 
+import android.content.Context
 import com.hezi.chatsdk.core.config.Provider
 import com.hezi.chatsdk.core.providers.LlmProvider
+import com.hezi.chatsdk.gemma.GemmaProvider
+import com.hezi.chatsdk.gemma.di.GEMMA_PROVIDER_NAME
+import com.hezi.chatsdk.gemma.di.GemmaModelPath
+import com.hezi.chatsdk.gemma.di.GemmaProviderInfo
 import com.hezi.chatsdk.mock.MockProvider
 import com.hezi.chatsdk.mock.di.MOCK_PROVIDER_NAME
 import com.hezi.chatsdk.mock.di.MockProviderInfo
@@ -13,6 +18,7 @@ import com.hezi.chatsdk.openai.di.OpenAiProviderInfo
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
 import kotlinx.serialization.json.Json
@@ -52,6 +58,22 @@ object ProviderModule {
             apiKey = apiKey,
             json = json,
             providerInfo = providerInfo
+        )
+    }
+
+    @Provides
+    @IntoMap
+    @ProviderName(GEMMA_PROVIDER_NAME)
+    @Singleton
+    fun provideGemmaProvider(
+        @ApplicationContext context: Context,
+        @GemmaProviderInfo providerInfo: Provider,
+        @GemmaModelPath modelPath: String
+    ): LlmProvider {
+        return GemmaProvider(
+            context = context,
+            providerInfo = providerInfo,
+            modelPath = modelPath
         )
     }
 }

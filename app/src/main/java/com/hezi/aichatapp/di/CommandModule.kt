@@ -26,3 +26,4 @@ abstract class CommandModule {
     abstract fun bindCommandHandler(impl: ChatCommandHandler): CommandHandler
 }
 
+

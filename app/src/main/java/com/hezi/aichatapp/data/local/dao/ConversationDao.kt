@@ -26,3 +26,4 @@ interface ConversationDao {
     suspend fun deleteConversation(conversation: ConversationEntity)
 }
 
+

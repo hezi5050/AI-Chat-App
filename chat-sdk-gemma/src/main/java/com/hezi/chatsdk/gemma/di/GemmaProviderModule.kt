@@ -1,4 +1,4 @@
-package com.hezi.chatsdk.openai.di
+package com.hezi.chatsdk.gemma.di
 
 import com.hezi.chatsdk.core.config.Provider
 import dagger.Module
@@ -8,25 +8,20 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
-const val OPEN_AI_PROVIDER_NAME = "OpenAI"
+const val GEMMA_PROVIDER_NAME = "Gemma"
 
 @Module
 @InstallIn(SingletonComponent::class)
-object OpenAiProviderModule {
+object GemmaProviderModule {
 
     @Provides
     @Singleton
-    @OpenAiProviderInfo
-    fun provideOpenAiProviderInfo(): Provider {
+    @GemmaProviderInfo
+    fun provideGemmaProviderInfo(): Provider {
         return Provider(
-            name = OPEN_AI_PROVIDER_NAME,
+            name = GEMMA_PROVIDER_NAME,
             models = listOf(
-                "gpt-4",
-                "gpt-4-turbo",
-                "gpt-4o",
-                "gpt-4o-mini",
-                "gpt-3.5-turbo",
-                "error-model"
+                "gemma-3-1b-it"
             )
         )
     }
@@ -34,6 +29,5 @@ object OpenAiProviderModule {
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class OpenAiProviderInfo
-
+annotation class GemmaProviderInfo
 

@@ -15,3 +15,4 @@ class DiagnosticsViewModel @Inject constructor(
     fun getLogsList() = diagnosticsRepository.getLogsList()
 }
 
+

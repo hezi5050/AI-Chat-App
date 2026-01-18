@@ -19,3 +19,4 @@ abstract class DiagnosticsModule {
     ): DiagnosticsRepository
 }
 
+
